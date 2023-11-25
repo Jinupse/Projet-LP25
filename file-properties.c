@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <utility.h>
 
+#include <sys/types.h> 
+#include <dirent.h>
+
 /*!
  * @brief get_file_stats gets all of the required information for a file (inc. directories)
  * @param the files list entry
