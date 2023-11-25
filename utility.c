@@ -13,6 +13,10 @@
  * @return a pointer to the resulting path, NULL when concatenation failed
  */
 char *concat_path(char *result, char *prefix, char *suffix) {
+       // Vérifier que les paramètres existent
+    if (result == NULL || prefix == NULL || suffix == NULL) {
+        return NULL;
+    }
    // Copier le préfixe dans le résultat
     strcpy(result, prefix);
 
