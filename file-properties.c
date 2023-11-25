@@ -64,4 +64,32 @@ bool directory_exists(char *path_to_dir) {
  * Hint: try to open a file in write mode in the target directory.
  */
 bool is_directory_writable(char *path_to_dir) {
+
+    DIR *repertoire;
+    struct dirent *rep;
+    struct stat statistique;
+
+    if ((directory_exists(path_to_dir)) == true){ 
+        
+        repertoire=opendir(path_to_dir); 
+        rep=readdir(repertoire);
+
+        while(rep) { 
+            
+            if(stat(rep->d_name, &statistique) != 0){ //permet d'obtenir les informations sur le fichier
+                return false;
+            }else{
+                FILE *f=fopen(rep->d_name,"w");
+                if(S_ISREG(statistique.st_mode) && f != NULL){ //on regarde si c'est un fichier regulier
+                    return true;
+                }
+            }
+            rep = readdir(repertoire);
+        }
+            
+    }else{
+        return false; 
+    }
+    
+    closedir(repertoire);
 }
