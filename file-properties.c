@@ -29,6 +29,31 @@
  * @return -1 in case of error, 0 else
  */
 int get_file_stats(files_list_entry_t *entry) {
+
+    FILE *f=fopen("information.txt","a");//creation d'un fichier pour stocker les informations
+    
+    if(f != NULL){
+
+        if (S_ISDIR(entry->entry_type)){ //verifie le type de fichier ici si c'est un repertoire
+            fprintf(f,"%lo#",(unsigned long)entry->mode);
+            fprintf(f,"%s\n",entry->entry_type);
+            return 0;
+        }else if (S_ISREG(entry->entry_type)){ //verifie le type de fichier ici si c'est un fichier
+            fprintf(f,"%lo#",(unsigned long)entry->mode);
+            fprintf(f,"%s#",entry->mtime);
+            fprintf(f,"%lld#",entry->size);
+            fprintf(f,"%s#",entry->entry_type);
+            for (int i=0;i<16;i++){
+                fprintf(f,"%d",entry->md5sum[i]);
+            }
+            fprintf(f,"\n");
+            return 0;
+        }else{
+            return -1;
+        }
+    } 
+    
+    fclose(f);
 }
 
 /*!
