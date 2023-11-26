@@ -139,6 +139,33 @@ int compute_file_md5(files_list_entry_t *entry) {
     // Succès
     return 0;
 }
+//autres version
+int compute_file_md5(files_list_entry_t *entry) {
+    // Ouvrir le fichier en mode binaire
+    FILE *file = fopen(entry->path_and_name, "rb");
+
+    // Vérifier si le fichier a pu être ouvert
+    if (!file) {
+        perror("Erreur lors de l'ouverture du fichier");
+        return -1;
+    }
+     MD5_CTX md5Context; //une structure qui contient les états internes nécessaires lors du calcul du hachage MD5.
+    MD5_Init(&md5Context);// initialise le contexte MD5
+
+    // Lire le fichier par blocs et mettre à jour le contexte MD5
+    int bytesRead;
+    char buffer[1024];
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) != 0) { // lit des données à partir d'un fichier
+        MD5_Update(&md5Context, buffer, bytesRead);
+    }
+
+    // Finaliser la somme MD5
+    MD5_Final(entry->md5sum, &md5Context);
+
+    // Fermer le fichier
+    fclose(file);
+    return 0;
+}
 
 /*!
  * @brief directory_exists tests the existence of a directory
