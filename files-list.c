@@ -28,6 +28,37 @@ void clear_files_list(files_list_t *list) {
  *  @return 0 if success, -1 else (out of memory)
  */
 files_list_entry_t *add_file_entry(files_list_t *list, char *file_path) {
+
+  struct stat infos;
+  stat(file_path, &infos);
+
+  files_list_entry_t *newf = malloc(sizeof(files_list_entry_t));
+  int taille=sizeof(newf->path_and_name);
+  strncpy(newf->path_and_name,file_path,taille);
+
+  time_t temps = infos.st_mtime;
+  struct tm *temps1;
+  temps1=localtime(&temps);
+  char dateheure[200];
+  strftime(dateheure, sizeof(dateheure), "%d.%m.%Y %H:%M:%S", temps1);
+  printf("Date de dernière modification : %s\n",dateheure);
+
+  uint64_t size=infos.st_size;
+  printf("taille : %ld bytes\n",size);
+
+  uint8_t md5sum[16];
+  puts(md5sum);
+
+  file_type_t entry_type;
+
+  mode_t mode=infos.st_mode;
+  printf("mode : %d\n",mode);
+
+
+  struct _files_list_entry *next;
+  struct _files_list_entry *prev;
+  return 0;
+  free(newf);
 }
 
 /*!
