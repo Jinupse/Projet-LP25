@@ -53,10 +53,43 @@ files_list_entry_t *add_file_entry(files_list_t *list, char *file_path) {
   }
   mode_t mode=infos.st_mode;                                     // Ici on récupère le mode du fichier
   printf("mode : %d\n",mode);
-  struct _files_list_entry *next;                                // On détermine le précédent et le suivant de notre nouvelle entrée pour la placer dans la liste
-  struct _files_list_entry *prev;
-  return 0;
+  if (list->head==NULL){                                         // On détermine le précédent et le suivant de notre nouvelle entrée pour la placer dans la liste
+    newf = list->head;                                           // Si la liste est vide alors on dit que newf est la tete et la queue de la liste et qu'il n'a ni suivant ni
+    newf = list->tail;                                           // précédent
+    newf->next=NULL;                               
+    newf->prev=NULL;
+  }
+  else{                                                          // Sinon on boucle pour parcourir toutes les entrées de la liste et les comparer à newf,
+    files_list_entry_t *tmp = malloc(sizeof(files_list_entry_t));
+    files_list_entry_t *verif_exists = malloc(sizeof(files_list_entry_t));
+    tmp=list->head;                                              // si newf est plus petit alors on le place avant l'élément auquel on en est (tmp)
+    verif_exists=list->head;
+    while (verif_exists->next!=NULL){                            // On parcourt une première fois la liste pour voir si le fichier y existe déjà, si c'est le cas on retourne 0
+      if (strcmp(newf->path_and_name,verif_exists->path_and_name)==0){
+        return 0;
+      }
+      verif_exists=verif_exists->next;
+    }
+    while (tmp->next!=NULL){                                     // On parcourt ensuite la liste, si l'élément actuel est plus grand que newf, on place newf avant dans la liste
+      if (strcmp(newf->path_and_name,verif_exists->path_and_name)<0){                                   // en changeant les valeurs des suivants et précédents des 2 éléments, on traite aussi le cas où newf est
+        newf->next=tmp;                                          // plus petit que l'élément en tête de liste
+        if (tmp->prev==NULL){
+            newf->prev=NULL;
+            tmp->prev=newf;
+            list->head=newf;
+        }
+        else{
+          newf->prev=tmp->prev;
+          tmp->prev=newf;
+        }
+      }
+      tmp=tmp->next;
+    }
+    free(tmp);
+    free(verif_exists);
+  }
   free(newf);
+  return 0;
 }
 
 /*!
