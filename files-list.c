@@ -45,11 +45,11 @@ files_list_entry_t *add_file_entry(files_list_t *list, char *file_path) {
   printf("taille : %ld bytes\n",size);
   if (S_ISDIR(infos.st_mode)){                                   // Ici on vérifie si le chemin donné mène à un dossier ou à un fichier
     file_type_t entry_type = DOSSIER;
-    printf("DOSSIER");
+    printf("DOSSIER\n");
   }
-  else{
+  else if (S_ISREG(infos.st_mode)){
     file_type_t entry_type = FICHIER; 
-    printf("FICHIER");
+    printf("FICHIER\n");
   }
   mode_t mode=infos.st_mode;                                     // Ici on récupère le mode du fichier
   printf("mode : %d\n",mode);
