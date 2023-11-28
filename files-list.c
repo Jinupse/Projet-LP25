@@ -30,32 +30,30 @@ void clear_files_list(files_list_t *list) {
 files_list_entry_t *add_file_entry(files_list_t *list, char *file_path) {
 
   struct stat infos;
-  stat(file_path, &infos);
+  stat(file_path, &infos); // On remplit infos avec les informations du fichier grace à la structure et à la commande stat
 
-  files_list_entry_t *newf = malloc(sizeof(files_list_entry_t));
+  files_list_entry_t *newf = malloc(sizeof(files_list_entry_t)); // On crée une nouvelle entrée en lui attribuant la mémoire nécéssaire
   int taille=sizeof(newf->path_and_name);
-  strncpy(newf->path_and_name,file_path,taille);
-
-  time_t temps = infos.st_mtime;
-  struct tm *temps1;
+  strncpy(newf->path_and_name,file_path,taille);                 // On attribue à la nouvelle entrée le chemin donné en argument de la fonction
+  time_t temps = infos.st_mtime;                                 // Les prochaines lignes servent à récupérer la derniere date de modification du fichier
+  struct tm *temps1;                                             // puis à l'afficher dans le format souhaité
   temps1=localtime(&temps);
   char dateheure[200];
   strftime(dateheure, sizeof(dateheure), "%d.%m.%Y %H:%M:%S", temps1);
   printf("Date de dernière modification : %s\n",dateheure);
-
-  uint64_t size=infos.st_size;
+  uint64_t size=infos.st_size;                                   // Ici on récupère la taille du fichier en bytes
   printf("taille : %ld bytes\n",size);
-
-  uint8_t md5sum[16];
-  puts(md5sum);
-
-  file_type_t entry_type;
-
-  mode_t mode=infos.st_mode;
+  if (S_ISDIR(infos.st_mode)){                                   // Ici on vérifie si le chemin donné mène à un dossier ou à un fichier
+    file_type_t entry_type = DOSSIER;
+    printf("DOSSIER");
+  }
+  else{
+    file_type_t entry_type = FICHIER; 
+    printf("FICHIER");
+  }
+  mode_t mode=infos.st_mode;                                     // Ici on récupère le mode du fichier
   printf("mode : %d\n",mode);
-
-
-  struct _files_list_entry *next;
+  struct _files_list_entry *next;                                // On détermine le précédent et le suivant de notre nouvelle entrée pour la placer dans la liste
   struct _files_list_entry *prev;
   return 0;
   free(newf);
