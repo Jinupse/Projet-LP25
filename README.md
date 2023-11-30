@@ -1,4 +1,23 @@
 # Projet-LP25
+#30/11/2023
+# Idéalement pour d'ici mardi 05/12/23 :
+
+Iseline : find_entry_by_name dans files-list (+open_dir dans sync idéalement si tu peux, arrange toi avec Gaelle si vous voulez echanger au pire)
+-----------------------------
+Gaelle : mismatch dans sync (+copy_entry_to_destination dans sync idéalement si tu peux, arrange toi avec Iseline si vous voulez echanger au pire)
+-----------------------------
+Clara : synchronize make_files_lists_parallel make_files_lists dans sync
+-----------------------------
+Esteban : synchronize make_files_lists_parallel make_files_lists dans sync
+-----------------------------
+Si vous avez un souci on se tient au courant, ca fait beaucoup de fonctions par personne mais normalement elles sont pas très dures à faire à vue d'oeil, donc on devrait s'en sortir.
+Bon courage et oubliez pas si ya un souci on se contacte.
+
+
+
+
+
+
 #23/11/2023
 # Idéalement pour mardi 28/11/23 :
 
