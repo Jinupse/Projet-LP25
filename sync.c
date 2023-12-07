@@ -10,6 +10,7 @@
 #include <sys/sendfile.h>
 #include <unistd.h>
 #include <sys/msg.h>
+#include <stdbool.h>
 
 #include <stdio.h>
 
@@ -75,7 +76,33 @@ void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, c
  * Pay attention to the path so that the prefixes are not repeated from the source to the destination
  * Use sendfile to copy the file, mkdir to create the directory
  */
-void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t *the_config) {
+void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t *the_config) {  
+
+    FILE *f_source=fopen(source_entry->path_and_name,"r");//ouverture du fichier source en mode lecture
+    DIR *destination=opendir(the_config->destination);//ouverture du repertoire de destination
+
+    if(f_source != NULL){
+        if(directory_exists(destination) == false){//on verifie si le repertoire de destination existe 
+            mkdir(the_config->destination,source_entry->mode);//s'il n'existe pas on le creer en concervant les modes d'acces
+        }
+
+        if(!is_directory_writable(the_config->destination)){ //si le repertoire de destination n'est pas ouvert en mode ecriture on ne peut pas copier le fichier  
+            perror("le fichier ne peut pas etre copie car le repertoire de destination ne possede pas les droits en ecriture");
+        }else{
+            //permet que les préfixes ne soient pas répétés de la source à la destination dans le chemin
+            concat_path(the_config->destination,the_config->destination,basename(the_config->source));//on ajoute le nom du fichier au chemin de la destination
+            FILE *f_destination=fopen(the_config->destination,"w");//creation d'un fichier dans le repertoire de destination
+            sendfile(f_destination,f_source,0,source_entry->size);//copie du fichier vers le repertoire de destination
+            utimensat (f_source,f_destination,source_entry->mtime,0);//on concerve le mtime 
+        }
+
+    }else{
+        perror("le fichier n'a pas pu etre ouvert");
+    }
+
+    fclose(f_source);
+    fclose(f_destination);
+    closedir(destination);
 }
 
 /*!
