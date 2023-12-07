@@ -98,11 +98,9 @@ int compute_file_md5(files_list_entry_t *entry) {
 bool directory_exists(char *path_to_dir) {
     DIR *repertoire;
     repertoire=opendir(path_to_dir); 
-    if (repertoire != NULL){
-        printf("Le repertoire existe\n");
+    if (repertoire != NULL){ //Le repertoire existe
         return true;
-    }else{
-        printf("Le repertoire n'existe pas\n");
+    }else{ //Le repertoire n'existe pas
         return false;
     }
     closedir(repertoire);
