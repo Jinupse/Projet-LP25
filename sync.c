@@ -103,4 +103,14 @@ DIR *open_dir(char *path) {
  * Relevant entries are all regular files and dir, except . and ..
  */
 struct dirent *get_next_entry(DIR *dir) {
+    struct dirent *next_entry;
+    next_entry= readdir(dir);
+    if (!next_entry){
+        return NULL;
+    }else{
+        if (S_ISDIR(next_entry->d_type) || S_ISREG(next_entry->d_type)){
+            return next_entry;
+        }
+        return NULL;
+    }
 }
