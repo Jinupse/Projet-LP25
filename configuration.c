@@ -41,7 +41,7 @@ printf("exécution de tous les programmes dans un seul proccesus (1 ou 0): ");
 scanf("%d", &the_config->is_parallel);
 
 //vérification avec message d'erreur
-while (the_config->is_parallel!=0 || the_config->is_parallel!=1){
+while (the_config->is_parallel!=0 && the_config->is_parallel!=1){
     printf("Erreur entrez 1 ou 0");
     printf("exécution de tous les programmes dans un seul proccesus (1 ou 0): ");
     scanf("%d", &the_config->is_parallel);
@@ -49,7 +49,7 @@ while (the_config->is_parallel!=0 || the_config->is_parallel!=1){
 
 printf("utiliser la somme MD5 (1 ou 0): ");
 scanf("%d", &the_config->uses_md5);
-while (the_config->uses_md5!=0 || the_config->uses_md5!=1){
+while (the_config->uses_md5!=0 && the_config->uses_md5!=1){
     printf("Erreur entrez 1 ou 0");
     printf("utiliser la somme MD5 (1 ou 0): ");
     scanf("%d", &the_config->uses_md5);
