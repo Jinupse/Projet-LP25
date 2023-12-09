@@ -149,13 +149,12 @@ void make_list(files_list_t *list, char *target) {
  * @return a pointer to a dir, NULL if it cannot be opened
  */
 DIR *open_dir(char *path) {
-                            // ouverture du répertoire dont le chemin est path et
-                            //stockage de la valeur qui pointe vers le répertoire ouvert rep
+                            // ouverture du répertoire dont le chemin est path et stockage de la valeur qui pointe vers le répertoire ouvert rep
     DIR *rep = opendir(path);
 
                             // vérification de l'ouverture du répertoire
     if (rep == NULL) {
-                            // Affichage de la variableerrno qui contient l'erreur
+                            // Affichage de la variable errno qui contient l'erreur
         perror("Impossible d'ouvrir le répertoire, vérifiez le nom.");
     }
                             // on retourne la valeur qui est soit NULL soit pointe vers le répertoire qui a été ouvert
