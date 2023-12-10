@@ -116,11 +116,6 @@ int add_entry_to_tail(files_list_t *list, files_list_entry_t *entry) {
  *  @return a pointer to the element found, NULL if none were found.
  */
 files_list_entry_t *find_entry_by_name(files_list_t *list, char *file_path, size_t start_of_src, size_t start_of_dest) {
-    
-​
-Iseline CASTEL
-​
-files_list_entry_t *find_entry_by_name(files_list_t *list, char *file_path, size_t start_of_src, size_t start_of_dest) {
    
                                                       //current est un pointeur qui représente l'état actuel pendant l'itération dans la liste
                                                      //la boucle for permet d'itérer à travers la liste avec current qui commence au début de la liste
@@ -133,7 +128,6 @@ files_list_entry_t *find_entry_by_name(files_list_t *list, char *file_path, size
         }
     }
     return NULL;
-}
 }
 
 /*!
