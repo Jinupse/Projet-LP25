@@ -22,6 +22,41 @@
  * @param p_context is a pointer to the processes context
  */
 void synchronize(configuration_t *the_config, process_context_t *p_context) {
+    files_list_t liste_source;                                              // On crée les 2 listes de fichiers contenus dans sources et localisation
+    files_list_t liste_dest;
+    make_files_list(liste_source,the_config->source);                       // On Remplit les 2 listes
+    make_files_list(liste_dest,the_config->destination);
+    files_list_entry_t *taille_d = malloc(sizeof(files_list_entry_t));      // On cherche la taille de la liste destination pour la suite du programme
+    taille_d=liste_dest->head;
+    int taille_ld=1;
+    while(taille_d!=liste_d->tail){
+        taille_d=taille_d->next;
+        taille_ld+=1;
+    }
+    files_list_entry_t *tmp_s = malloc(sizeof(files_list_entry_t));         // tmp_s et tmp_d vont nous servir à parcourir les 2 listes sources et destination
+    files_list_entry_t *tmp_d = malloc(sizeof(files_list_entry_t));
+    files_list_t differences;
+    tmp_s=liste_source->head;
+    int compteur=0;
+    while (tmp_s){                                                          // Pour chaque élément de la liste source on parcourt tous les éléments de la liste destination et si
+        tmp_d=liste_dest->head;                                             // il n'y a aucune correspondance quand on a comparé le ficheir de la source aux fichiers de la
+        while(tmp_d){                                                       // destination, on rajoute le fichier de la source dans la liste de differences
+            if (mismatch(tmp_s,tmp_d,the_config->uses_md5)==False){
+                compteur+=1
+            }
+            tmp_d->next;
+        }
+        if (compteur==(taille_d)){
+            add_file_entry(differences,tmp_s->path_and_name);
+        }
+        tmp_s=tmp_s->next;
+    }
+    files_list_entry_t *tmp_diff = malloc(sizeof(files_list_entry_t));      // Ensuite on parcourt la liste de différences et on copie les fichiers dans la destination
+    tmp_diff=differences->head;
+    while (tmp_diff){
+        copy_entry_to_destination(tmp_diff,the_config);
+        tmp_diff=tmp_diff->next;
+    }
 }
 
 /*!
