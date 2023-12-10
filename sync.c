@@ -150,6 +150,53 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
  * @param target is the target dir whose content must be listed
  */
 void make_list(files_list_t *list, char *target) {
+  #include <dirent.h>
+
+/*!
+ * @brief make_list lists files in a location (it recurses in directories)
+ * It doesn't get files properties, only a list of paths
+ * This function is used by make_files_list and make_files_list_parallel
+ * @param list is a pointer to the list that will be built
+ * @param target is the target dir whose content must be listed
+ */
+void make_list(files_list_t *list, const char *target) {
+    // Ouvre le répertoire spécifié
+    DIR *dir = opendir(target);
+    if (dir == NULL) {
+        perror("Erreur en ouvrant le répertoire");
+        return;
+    }
+
+    // Structure pour stocker les informations sur les entrées du répertoire
+    struct dirent *entry;
+
+    // Parcours de chaque entrée du répertoire
+    while ((entry = readdir(dir)) != NULL) {
+        // Ignorer les entrées "." et ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Construire le chemin complet de l'entrée
+        char full_path[PATH_MAX];
+        snprintf(full_path, sizeof(full_path), "%s/%s", target, entry->d_name);
+
+        // Ajouter l'entrée à la liste
+        files_list_entry_t *added_entry = add_file_entry(list, full_path);
+        if (added_entry == NULL) {
+            fprintf(stderr, "Erreur lors de l'ajout du fichier : %s\n", full_path);
+        }
+
+        // Si l'entrée est un répertoire, récursivement appeler la fonction pour explorer son contenu
+        if (entry->d_type == DT_DIR) {
+            make_list(list, full_path);
+        }
+    }
+
+    // Fermer le répertoire
+    closedir(dir);
+}
+
 }
 
 /*!
