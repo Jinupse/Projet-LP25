@@ -161,6 +161,21 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
         if(!is_directory_writable(the_config->destination)){ //si le repertoire de destination n'est pas ouvert en mode ecriture on ne peut pas copier le fichier  
             perror("le fichier ne peut pas etre copie car le repertoire de destination ne possede pas les droits en ecriture");
         }else{
+
+            char *chemin = NULL;
+            chemin = strtok(chaine, "/");//permet de récupérer le nom de chaque répertoire du chemin où se trouve le fichier à copier
+            char TableauChemin[source_entry->size];//tableau qui va stocker chaque nom de répertoire
+     
+            int i=0;
+            while (chemin != NULL){
+                strcpy(TableauChemin[i], chemin);//on stocke chaque nom de répertoire dans un tableau
+                i++;
+                chemin = strtok( NULL, " ");
+            }
+            for(j=1;j<i-1;j++){
+                mkdir(TableauChemin[i],0777);//on créer les répertoires dans la destination 
+            }
+            
             //permet que les préfixes ne soient pas répétés de la source à la destination dans le chemin
             concat_path(the_config->destination,the_config->destination,basename(the_config->source));//on ajoute le nom du fichier au chemin de la destination
             FILE *f_destination=fopen(the_config->destination,"w");//creation d'un fichier dans le repertoire de destination
