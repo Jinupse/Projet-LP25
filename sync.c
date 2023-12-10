@@ -58,33 +58,42 @@ bool mismatch(files_list_entry_t *lhd, files_list_entry_t *rhd, bool has_md5) {
  * @param target_path is the path whose files to list
  */
 void make_files_list(files_list_t *list, char *target_path) {
+    // Ouvre le répertoire
     DIR *dir = opendir(target_path);
     if (dir == NULL) {
-        perror("Error opening directory");
+        perror("Erreur en ouvrant le répertoire");
         exit(EXIT_FAILURE);
     }
 
     struct dirent *entry;
+
+    // se realise sur chaque entrée du répertoire
     while ((entry = readdir(dir)) != NULL) {
+        // Ignore les entrées "." et ".."
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 
+        // On construit le chemin complet en combinant target_path et le nom de l'entrée
         char full_path[PATH_MAX];
         snprintf(full_path, sizeof(full_path), "%s/%s", target_path, entry->d_name);
 
+        // On ajoute les informations du fichier à la liste
         files_list_entry_t *added_entry = add_file_entry(list, full_path);
         if (added_entry == NULL) {
-            fprintf(stderr, "Error adding file: %s\n", full_path);
+            fprintf(stderr, "Erreur lors de l'ajout du fichier : %s\n", full_path);
         }
 
+        // Si l'entrée est un répertoire, on effectue un appel récursif pour traiter son contenu
         if (entry->d_type == DOSSIER) {
             make_files_list(list, entry->d_name);
         }
 
-        printf("File: %s\n", full_path);
+        // On affiche des informations sur le fichier actuel
+        printf("Fichier : %s\n", full_path);
     }
 
+    // On ferme le répertoire
     closedir(dir);
 }
 
