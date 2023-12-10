@@ -149,16 +149,6 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
  * @param list is a pointer to the list that will be built
  * @param target is the target dir whose content must be listed
  */
-void make_list(files_list_t *list, char *target) {
-  #include <dirent.h>
-
-/*!
- * @brief make_list lists files in a location (it recurses in directories)
- * It doesn't get files properties, only a list of paths
- * This function is used by make_files_list and make_files_list_parallel
- * @param list is a pointer to the list that will be built
- * @param target is the target dir whose content must be listed
- */
 void make_list(files_list_t *list, const char *target) {
     // Ouvre le répertoire spécifié
     DIR *dir = opendir(target);
