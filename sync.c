@@ -164,16 +164,21 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
 
             char *chemin = NULL;
             chemin = strtok(chaine, "/");//permet de récupérer le nom de chaque répertoire du chemin où se trouve le fichier à copier
-            char TableauChemin[source_entry->size];//tableau qui va stocker chaque nom de répertoire
+            char TableauChemin[source_entry->size][source_entry->size];//tableau qui va stocker chaque nom de répertoire
      
             int i=0;
             while (chemin != NULL){
-                strcpy(TableauChemin[i], chemin);//on stocke chaque nom de répertoire dans un tableau
+                strcpy(&TableauChemin[i][i], chemin);//on stocke chaque nom de répertoire dans un tableau
                 i++;
-                chemin = strtok( NULL, " ");
+                chemin = strtok( NULL, "/");
             }
-            for(j=1;j<i-1;j++){
-                mkdir(TableauChemin[i],0777);//on créer les répertoires dans la destination 
+            for(j=1;j<i-1;j++){ 
+                if(chdir(&TableauChemin[j][j]) != 0){//on se déplace dans le répertoire
+                    mkdir(&TableauChemin[j][j], 0777);//on créer les répertoires dans la destination 
+                }else{
+                    chdir(&TableauChemin[j][j]);
+                }
+                chdir(&TableauChemin[j][j]);
             }
             
             //permet que les préfixes ne soient pas répétés de la source à la destination dans le chemin
