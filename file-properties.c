@@ -12,6 +12,7 @@
 #include <utility.h>
 
 #include <sys/types.h> 
+#include <sync.h>
 
 /*!
  * @brief get_file_stats gets all of the required information for a file (inc. directories)
@@ -112,32 +113,14 @@ bool directory_exists(char *path_to_dir) {
  * Hint: try to open a file in write mode in the target directory.
  */
 bool is_directory_writable(char *path_to_dir) {
-
-    DIR *repertoire;
-    struct dirent *rep;
-    struct stat statistique;
-
-    if ((directory_exists(path_to_dir)) == true){ 
-        
-        repertoire=opendir(path_to_dir); 
-        rep=readdir(repertoire);
-
-        while(rep) { 
-            
-            if(stat(rep->d_name, &statistique) != 0){ //permet d'obtenir les informations sur le fichier
-                return false;
-            }else{
-                FILE *f=fopen(rep->d_name,"w");
-                if(S_ISREG(statistique.st_mode) && f != NULL){ //on regarde si c'est un fichier regulier
-                    return true;
-                }
-            }
-            rep = readdir(repertoire);
-        }
-            
+    DIR *repertoire=open_dir(path_to_dir); //on ouvre le répertoire
+    FILE *f=fopen(abc,"w"); //on creer et on ouvre un fichier test nommé abc en mode ecriture
+    if(f != NULL){//si le fichier a pu etre ouvert
+        fclose(f);//on ferme le fichier
+        remove(f);//on supprime le fichier
+        return true;
     }else{
-        return false; 
+        return false;
     }
-    
     closedir(repertoire);
 }
