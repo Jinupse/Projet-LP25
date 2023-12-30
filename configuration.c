@@ -46,8 +46,6 @@ void init_configuration(configuration_t *the_config)
  * @return -1 if configuration cannot succeed, 0 when ok
  */
 int set_configuration(configuration_t *the_config, int argc, char *argv[]) struct option my_opts[] = {
-        {.name="source", .has_arg=1, .flag=0, .val='s'},
-        {.name="destination", .has_arg=1, .flag=0, .val='d'},
         {.name="processes-count", .has_arg=1, .flag=0, .val='p'},
         {.name="is_parallel", .has_arg=0, .flag=0, .val='i'},
         {.name="uses_md5", .has_arg=0, .flag=0, .val='m'},
@@ -59,16 +57,6 @@ int set_configuration(configuration_t *the_config, int argc, char *argv[]) struc
 int opt;
     while ((opt = getopt_long(argc, argv, "", my_opts, NULL)) != -1) {
         switch (opt) {
-            case 's':
-                // Update source path in the configuration
-                snprintf(the_config->source, sizeof(the_config->source), "%s", optarg);
-                break;
-
-            case 'd':
-                // Update destination path in the configuration
-                snprintf(the_config->destination, sizeof(the_config->destination), "%s", optarg);
-                break;
-
             case 'p':
                 // Update processes count in the configuration
                 the_config->processes_count = atoi(optarg);
@@ -82,6 +70,14 @@ int opt;
             case 'm':
                 // Update uses_md5 flag in the configuration
                 the_config->uses_md5 = 1;
+                break;
+            case 'v' :
+                // Update is_verbose flag in the configuration
+                the_config->is_verbose = 1;
+                break;
+            case 'r' : 
+             // Update is_dry_run flag in the configuration
+                the_config->is_dry_run = 1;
                 break;
 
             default:
