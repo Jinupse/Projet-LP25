@@ -25,35 +25,15 @@ void display_help(char *my_name) {
  * @param the_config is a pointer to the configuration to be initialized
  */
 void init_configuration(configuration_t *the_config) 
-//acquisition des paramètres
-printf("Entrez les paramètres suivants : ");
-
-printf("chemin du fichier source : ");
-scanf("%c", the_config->source);
-
-printf("chemin du fichier destination: ");
-scanf("%c", the_config->destination);
-
-printf("nombre de processus analyseurs: ");
-scanf("%hhi",&the_config->processes_count);
-
-printf("exécution de tous les programmes dans un seul proccesus (1 ou 0): ");
-scanf("%d", &the_config->is_parallel);
-
-//vérification avec message d'erreur
-while (the_config->is_parallel!=0 && the_config->is_parallel!=1){
-    printf("Erreur entrez 1 ou 0");
-    printf("exécution de tous les programmes dans un seul proccesus (1 ou 0): ");
-    scanf("%d", &the_config->is_parallel);
-}
-
-printf("utiliser la somme MD5 (1 ou 0): ");
-scanf("%d", &the_config->uses_md5);
-while (the_config->uses_md5!=0 && the_config->uses_md5!=1){
-    printf("Erreur entrez 1 ou 0");
-    printf("utiliser la somme MD5 (1 ou 0): ");
-    scanf("%d", &the_config->uses_md5);
-}
+{
+    // affectation des paramètres par défaut
+    strcpy(the_config->source, "source.txt");
+    strcpy(the_config->destination, "destination.txt");
+    the_config->processes_count = 1;
+    the_config->is_parallel = 0;
+    the_config->uses_md5 = 0;
+    the_config->is_verbose=0;
+    the_config->is_dry_run=0;
 }
 
 /*!
