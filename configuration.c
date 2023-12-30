@@ -51,6 +51,9 @@ int set_configuration(configuration_t *the_config, int argc, char *argv[]) struc
         {.name="processes-count", .has_arg=1, .flag=0, .val='p'},
         {.name="is_parallel", .has_arg=0, .flag=0, .val='i'},
         {.name="uses_md5", .has_arg=0, .flag=0, .val='m'},
+        {.name="is_verbose", .has_arg=0, .flag=0, .val='v'},
+        {.name="is_dry_run", .has_arg=0, .flag=0, .val='r'},
+        
         {.name=0, .has_arg=0, .flag=0, .val=0},
     };
 int opt;
