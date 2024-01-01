@@ -14,6 +14,29 @@
  * Used by the specialized functions send_analyze*
  */
 int send_file_entry(int msg_queue, int recipient, files_list_entry_t *file_entry, int cmd_code) {
+    // Vérifie la donnée file_entry a été fournie
+    if (file_entry == NULL) {
+        fprintf(stderr, "Erreur, entrée invalide.\n");
+        return -1;  // 
+    }
+
+    //Création d'un message avec sa structure (type de message, code d'opération et données du fichier)
+    files_list_entry_transmit_t msg;
+    msg.mtype = recipient;
+    msg.op_code = cmd_code;
+   //permet de copier les données contenues dans la structure file_entry vers le champ payload de la structure message afin
+   //que les informations sur le messages soit transmises 
+    memcpy(&msg.payload, file_entry, sizeof(files_list_entry_t));
+
+    // Appel de la fonction msgsnd pour envoyer notre message à une file de messages.
+   //msg_queue est l'identifiant de la file de message
+    int result_msg = msgsnd(msg_queue, &msg, sizeof(files_list_entry_transmit_t), 0);
+   //si la fonction renvoie -1 il y a une erreur
+    if (result_msg == -1) {
+        perror("msgsnd");
+    }
+
+    return result_msg;
 }
 
 /*!
