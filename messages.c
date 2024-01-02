@@ -47,6 +47,30 @@ int send_file_entry(int msg_queue, int recipient, files_list_entry_t *file_entry
  * @return the result of msgsnd
  */
 int send_analyze_dir_command(int msg_queue, int recipient, char *target_dir) {
+    if (target_dir == NULL) {
+        fprintf(stderr, "Erreur : pointeur de chaîne NULL\n");
+        return -1;
+    }
+
+    // Initialiser la structure de la commande d'analyse de répertoire
+    analyze_dir_command_t dir_command;
+    dir_command.mtype = recipient;
+    dir_command.op_code = COMMAND_CODE_ANALYZE_DIR;
+    strncpy(dir_command.target, target_dir, sizeof(dir_command.target));
+
+    // Initialiser la structure du message à envoyer
+    any_message_t message;
+    message.analyze_dir_command = dir_command;
+
+    // Envoyer le message à la file de messages
+    int result = msgsnd(msg_queue, &message, sizeof(analyze_dir_command_t) - sizeof(long), 0);
+
+    if (result == -1) {
+        // Gérer l'erreur, imprimer un message d'erreur avec errno
+        perror("Erreur lors de l'envoi de la commande d'analyse du répertoire");
+    }
+
+    return result;
 }
 
 // The 3 following functions are one-liners
