@@ -12,9 +12,10 @@
  * @param suffix the second part of the resulting path
  * @return a pointer to the resulting path, NULL when concatenation failed
  */
+
 char *concat_path(char *result, char *prefix, char *suffix) {
-       // Vérifier que les paramètres existent
-    if (result == NULL || prefix == NULL || suffix == NULL) {
+        // Vérifier que les paramètres existent et que la taille est compatible
+    if (result == NULL || prefix == NULL || (strlen(prefix)+strlen(suffix) >= PATH_SIZE)) {
         return NULL;
     }
    // Copier le préfixe dans le résultat
@@ -23,7 +24,12 @@ char *concat_path(char *result, char *prefix, char *suffix) {
     // Vérifier si le préfixe se termine par un '/'
     if (result[strlen(result) - 1] != '/') {
         // Ajouter un '/' si nécessaire
-        strcat(result, "/");
+        if (strlen(result) < PATH_SIZE){
+            strcat(result, "/");
+        }
+        else{
+            return NULL;
+        }
         }
 
     // Concaténer le suffixe au résultat
