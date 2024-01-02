@@ -106,15 +106,10 @@ void make_files_list(files_list_t *list, char *target_path) {
     struct dirent *entry;
 
     // se realise sur chaque entrée du répertoire
-    while ((entry = readdir(dir)) != NULL) {
-        // Ignore les entrées "." et ".."
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-
+    while ((entry = get_next_entry(dir)) != NULL) {
         // On construit le chemin complet en combinant target_path et le nom de l'entrée
         char full_path[PATH_MAX];
-        snprintf(full_path, sizeof(full_path), "%s/%s", target_path, entry->d_name);
+        concat_path(full_path,target_path, entry->d_name);
 
         // On ajoute les informations du fichier à la liste
         files_list_entry_t *added_entry = add_file_entry(list, full_path);
@@ -123,8 +118,8 @@ void make_files_list(files_list_t *list, char *target_path) {
         }
 
         // Si l'entrée est un répertoire, on effectue un appel récursif pour traiter son contenu
-        if (entry->d_type == DOSSIER) {
-            make_files_list(list, entry->d_name);
+         if (S_ISDIR(entry->d_type)) {
+            make_files_list(list, full_path);
         }
 
         // On affiche des informations sur le fichier actuel
@@ -208,43 +203,39 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
  * @param target is the target dir whose content must be listed
  */
 void make_list(files_list_t *list, const char *target) {
-    // Ouvre le répertoire spécifié
-    DIR *dir = opendir(target);
+    // Ouvre le répertoire
+    DIR *dir = opendir(target_path);
     if (dir == NULL) {
         perror("Erreur en ouvrant le répertoire");
-        return;
+        exit(EXIT_FAILURE);
     }
 
-    // Structure pour stocker les informations sur les entrées du répertoire
     struct dirent *entry;
 
-    // Parcours de chaque entrée du répertoire
-    while ((entry = readdir(dir)) != NULL) {
-        // Ignorer les entrées "." et ".."
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-
-        // Construire le chemin complet de l'entrée
+    // se realise sur chaque entrée du répertoire
+    while ((entry = get_next_entry(dir)) != NULL) {
+        // On construit le chemin complet en combinant target_path et le nom de l'entrée
         char full_path[PATH_MAX];
-        snprintf(full_path, sizeof(full_path), "%s/%s", target, entry->d_name);
+        concat_path(full_path,target_path, entry->d_name);
 
-        // Ajouter l'entrée à la liste
+        // On ajoute les informations du fichier à la liste
         files_list_entry_t *added_entry = add_file_entry(list, full_path);
         if (added_entry == NULL) {
             fprintf(stderr, "Erreur lors de l'ajout du fichier : %s\n", full_path);
         }
 
-        // Si l'entrée est un répertoire, récursivement appeler la fonction pour explorer son contenu
-        if (entry->d_type == DT_DIR) {
-            make_list(list, full_path);
+        // Si l'entrée est un répertoire, on effectue un appel récursif pour traiter son contenu
+         if (S_ISDIR(entry->d_type)) {
+            make_files_list(list, full_path);
         }
+
+        // On affiche des informations sur le fichier actuel
+        printf("Fichier : %s\n", full_path);
     }
 
-    // Fermer le répertoire
+    // On ferme le répertoire
     closedir(dir);
 }
-
 }
 
 /*!
