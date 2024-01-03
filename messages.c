@@ -121,6 +121,21 @@ int send_files_list_element(int msg_queue, int recipient, files_list_entry_t *fi
  * @return the result of msgsnd
  */
 int send_list_end(int msg_queue, int recipient) {
+
+    // Création d'une structure pour le message de fin de liste
+    any_message_t message_fin;
+    message_fin.list_entry.mtype = recipient;
+    message_fin.list_entry.op_code = COMMAND_CODE_LIST_COMPLETE; 
+
+    // Envoyer le message à la file de messages
+    int resultat = msgsnd(msg_queue, &message_fin, sizeof(any_message_t) - sizeof(long), 0);
+
+    if (resultat == -1) {
+        // Gérer l'erreur, imprimer un message d'erreur avec perror
+        perror("Erreur lors de l'envoi du message de fin de liste");
+    }
+
+    return resultat;
 }
 
 /*!
@@ -130,6 +145,21 @@ int send_list_end(int msg_queue, int recipient) {
  * @return the result of msgsnd
  */
 int send_terminate_command(int msg_queue, int recipient) {
+
+    //  Initialiser la structure du message à envoyer
+    any_message_t message_terminer;
+    message_terminer.simple_command.mtype = recipient;
+    message_terminer.simple_command.op_code = COMMAND_CODE_TERMINATE;
+
+    // Envoyer le message à la file de messages
+    int resultat = msgsnd(msg_queue, &message_terminer, sizeof(any_message_t) - sizeof(long), 0);
+
+    if (resultat == -1) {
+        // Gérer l'erreur, imprimer un message d'erreur avec perror
+        perror("Erreur lors de l'envoi de la commande de terminaison");
+    }
+
+    return resultat;
 }
 
 /*!
@@ -139,4 +169,19 @@ int send_terminate_command(int msg_queue, int recipient) {
  * @return the result of msgsnd
  */
 int send_terminate_confirm(int msg_queue, int recipient) {
+
+    //  Initialiser la structure du message à envoyer
+    any_message_t message_confirmation;
+    message_confirmation.simple_command.mtype = recipient;
+    message_confirmation.simple_command.op_code = COMMAND_CODE_TERMINATE_OK;
+
+    // Envoyer le message à la file de messages
+    int resultat = msgsnd(msg_queue, &message_confirmation, sizeof(any_message_t) - sizeof(long), 0);
+
+    if (resultat == -1) {
+        // Gérer l'erreur, imprimer un message d'erreur avec perror
+        perror("Erreur lors de l'envoi de confirmation");
+    }
+
+    return resultat;
 }
