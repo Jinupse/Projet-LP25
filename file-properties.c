@@ -31,30 +31,30 @@
  */
 int get_file_stats(files_list_entry_t *entry) {
 
-    FILE *f=fopen("information.txt","a");//creation d'un fichier pour stocker les informations
-    
-    if(f != NULL){
+    struct stat infos;
 
-        if (S_ISDIR(entry->entry_type)){ //verifie le type de fichier ici si c'est un repertoire
-            fprintf(f,"%lo#",(unsigned long)entry->mode);
-            fprintf(f,"%s\n",entry->entry_type);
-            return 0;
-        }else if (S_ISREG(entry->entry_type)){ //verifie le type de fichier ici si c'est un fichier
-            fprintf(f,"%lo#",(unsigned long)entry->mode);
-            fprintf(f,"%s#",entry->mtime);
-            fprintf(f,"%lld#",entry->size);
-            fprintf(f,"%s#",entry->entry_type);
-            for (int i=0;i<16;i++){
-                fprintf(f,"%d",entry->md5sum[i]);
-            }
-            fprintf(f,"\n");
-            return 0;
-        }else{
-            return -1;
-        }
-    } 
+    // Obtention des statistiques du fichier
+    if (stat(entry->path_and_name, &infos) == -1) {
+        // Erreur lors de l'obtention des statistiques du fichier
+        return -1;
+    }
+
+    // Obtention des informations communes
+    entry->mode = infos.st_mode;
     
-    fclose(f);
+    //verifie le type de fichier : ici si c'est un repertoire
+    if (S_ISDIR(entry->entry_type)){ 
+        entry->entry_type = DOSSIER;
+        return 0;
+    }else if (S_ISREG(entry->entry_type)){ //verifie le type de fichier : ici si c'est un fichier
+        entry->mtime = infos.st_mtim.tv_nsec;//on recupere le temps en nanosecondes
+        entry->size = infos.st_size;
+        entry->entry_type = FICHIER;
+        entry->md5sum = compute_file_md5(entry);//on recupere la somme md5
+        return 0;
+    }else{
+        return -1;
+    }
 }
 
 /*!
