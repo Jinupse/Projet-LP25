@@ -91,9 +91,32 @@ void analyzer_process_loop(void *parameters) {
  * @param p_context is a pointer to the processes context
  */
 void clean_processes(configuration_t *the_config, process_context_t *p_context) {
-    // Do nothing if not parallel
-    // Send terminate
-    // Wait for responses
-    // Free allocated memory
-    // Free the MQ
+    // Ne rien faire si le traitement n'est pas parallèle
+    if (!the_config->is_parallel) {
+        return;
+    }
+
+    // Envoyer une commande de terminaison à tous les processus
+    kill(p_context->main_process_pid, SIGTERM);
+    kill(p_context->source_lister_pid, SIGTERM);
+    kill(p_context->destination_lister_pid, SIGTERM);
+
+    for (int i = 0; i < the_config->processes_count; ++i) {
+        kill(p_context->source_analyzers_pids[i], SIGTERM);
+        kill(p_context->destination_analyzers_pids[i], SIGTERM);
+    }
+
+    // Attendre les réponses de tous les processus fils
+    int status;
+    pid_t terminated_pid;
+
+    while ((terminated_pid = wait(&status)) > 0) {
+        printf("Processus avec PID %d terminé avec le statut %d\n", terminated_pid, WEXITSTATUS(status));
+    }
+
+    // Libérer la mémoire allouée
+    free(p_context->source_analyzers_pids);
+    free(p_context->destination_analyzers_pids);
+
+    // Libérer la file de messages (MQ) ou d'autres ressources si nécessaire
 }
