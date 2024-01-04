@@ -16,6 +16,29 @@
  * @return 0 if all went good, -1 else
  */
 int prepare(configuration_t *the_config, process_context_t *p_context) {
+    // Vérifier si le traitement parallèle est activé
+    if (the_config->is_parallel) {
+        // Allouer de la mémoire pour les PID des analyseurs
+        p_context->source_analyzers_pids = malloc(sizeof(pid_t) * the_config->processes_count);
+        p_context->destination_analyzers_pids = malloc(sizeof(pid_t) * the_config->processes_count);
+
+        if (p_context->source_analyzers_pids == NULL || p_context->destination_analyzers_pids == NULL) {
+            // Échec de l'allocation mémoire
+            perror("Erreur d'allocation mémoire");
+            return -1;
+        }
+
+        // Initialiser d'autres variables liées aux processus
+        p_context->main_process_pid = getpid();
+        p_context->source_lister_pid = 0;  // Vous pouvez définir ces valeurs selon vos besoins
+        p_context->destination_lister_pid = 0;
+
+
+        return 0;  // Renvoyer 0 pour indiquer le succès
+    } else {
+        // Le traitement parallèle n'est pas activé
+        return 0;  // Renvoyer 0 pour indiquer le succès
+    }
 }
 
 /*!
