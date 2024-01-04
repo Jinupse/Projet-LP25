@@ -70,6 +70,10 @@ int make_process(process_context_t *p_context, process_loop_t func, void *parame
  * @param parameters is a pointer to its parameters, to be cast to a lister_configuration_t
  */
 void lister_process_loop(void *parameters) {
+    // Conversion du pointeur vers le type approprié
+    lister_configuration_t *lister_config = (lister_configuration_t *)parameters;
+    printf("Boucle du processus lister en cours d'exécution avec recipient_id : %d, receiver_id : %d\n",
+           lister_config->my_recipient_id, lister_config->my_receiver_id);
 }
 
 /*!
