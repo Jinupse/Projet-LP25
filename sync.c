@@ -138,6 +138,33 @@ void make_files_list(files_list_t *list, char *target_path) {
  * @param msg_queue is the id of the MQ used for communication
  */
 void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, configuration_t *the_config, int msg_queue) {
+     // Vérifier si le traitement parallèle est activé
+    if (!the_config->is_parallel) {
+        return;
+    }
+
+    // Créer le processus source_lister
+    pid_t source_lister_pid = make_process(the_config, lister_process_loop, src_list);
+
+    // Créer le processus destination_lister
+    pid_t destination_lister_pid = make_process(the_config, lister_process_loop, dst_list);
+
+    // Créer les processus source_analyzers et destination_analyzers en parallèle
+    for (int i = 0; i < the_config->processes_count; ++i) {
+        make_process(the_config, analyzer_process_loop, &src_list->analyzer_config[i]);
+        make_process(the_config, analyzer_process_loop, &dst_list->analyzer_config[i]);
+    }
+
+    // Attendre la fin du processus source_lister
+    waitpid(source_lister_pid, NULL, 0);
+
+    // Attendre la fin du processus destination_lister
+    waitpid(destination_lister_pid, NULL, 0);
+
+    // Attendre la fin de tous les processus source_analyzers et destination_analyzers
+    for (int i = 0; i < the_config->processes_count; ++i) {
+        wait(NULL);
+    }
 }
 
 /*!
