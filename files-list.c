@@ -1,7 +1,8 @@
-#include <files-list.h>
+#include "file-list.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <stdio.h>
 
