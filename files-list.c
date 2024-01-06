@@ -28,68 +28,47 @@ void clear_files_list(files_list_t *list) {
  *  @return 0 if success, -1 else (out of memory)
  */
 files_list_entry_t *add_file_entry(files_list_t *list, char *file_path) {
-
-  struct stat infos;
-  stat(file_path, &infos); // On remplit infos avec les informations du fichier grace à la structure et à la commande stat
-
-  files_list_entry_t *newf = malloc(sizeof(files_list_entry_t)); // On crée une nouvelle entrée en lui attribuant la mémoire nécéssaire
-  int taille=sizeof(newf->path_and_name);
-  strncpy(newf->path_and_name,file_path,taille);                 // On attribue à la nouvelle entrée le chemin donné en argument de la fonction
-  time_t temps = infos.st_mtime;                                 // Les prochaines lignes servent à récupérer la derniere date de modification du fichier
-  struct tm *temps1;                                             // puis à l'afficher dans le format souhaité
-  temps1=localtime(&temps);
-  char dateheure[200];
-  strftime(dateheure, sizeof(dateheure), "%d.%m.%Y %H:%M:%S", temps1);
-  printf("Date de dernière modification : %s\n",dateheure);
-  uint64_t size=infos.st_size;                                   // Ici on récupère la taille du fichier en bytes
-  printf("taille : %ld bytes\n",size);
-  if (S_ISDIR(infos.st_mode)){                                   // Ici on vérifie si le chemin donné mène à un dossier ou à un fichier
-    file_type_t entry_type = DOSSIER;
-    printf("DOSSIER\n");
-  }
-  else if (S_ISREG(infos.st_mode)){
-    file_type_t entry_type = FICHIER; 
-    printf("FICHIER\n");
-  }
-  mode_t mode=infos.st_mode;                                     // Ici on récupère le mode du fichier
-  printf("mode : %d\n",mode);
-  if (list->head==NULL){                                         // On détermine le précédent et le suivant de notre nouvelle entrée pour la placer dans la liste
-    newf = list->head;                                           // Si la liste est vide alors on dit que newf est la tete et la queue de la liste et qu'il n'a ni suivant ni
-    newf = list->tail;                                           // précédent
-    newf->next=NULL;                               
-    newf->prev=NULL;
-  }
-  else{                                                          // Sinon on boucle pour parcourir toutes les entrées de la liste et les comparer à newf,
-    files_list_entry_t *tmp = malloc(sizeof(files_list_entry_t));
-    files_list_entry_t *verif_exists = malloc(sizeof(files_list_entry_t));
-    tmp=list->head;                                              // si newf est plus petit alors on le place avant l'élément auquel on en est (tmp)
-    verif_exists=list->head;
-    while (verif_exists->next!=NULL){                            // On parcourt une première fois la liste pour voir si le fichier y existe déjà, si c'est le cas on retourne 0
-      if (strcmp(newf->path_and_name,verif_exists->path_and_name)==0){
-        return 0;
-      }
-      verif_exists=verif_exists->next;
+    struct stat infos;
+    if (stat(file_path, &infos) != 0) {
+        perror("Erreur lors de la récupération des informations sur le fichier");
+        return NULL;
     }
-    while (tmp->next!=NULL){                                     // On parcourt ensuite la liste, si l'élément actuel est plus grand que newf, on place newf avant dans la liste
-      if (strcmp(newf->path_and_name,verif_exists->path_and_name)<0){                                   // en changeant les valeurs des suivants et précédents des 2 éléments, on traite aussi le cas où newf est
-        newf->next=tmp;                                          // plus petit que l'élément en tête de liste
-        if (tmp->prev==NULL){
-            newf->prev=NULL;
-            tmp->prev=newf;
-            list->head=newf;
-        }
-        else{
-          newf->prev=tmp->prev;
-          tmp->prev=newf;
-        }
-      }
-      tmp=tmp->next;
+
+    files_list_entry_t *newf = malloc(sizeof(files_list_entry_t));
+    if (newf == NULL) {
+        perror("Échec de l'allocation mémoire");
+        return NULL;
     }
-    free(tmp);
-    free(verif_exists);
-  }
-  free(newf);
-  return 0;
+
+    strncpy(newf->path_and_name, file_path, sizeof(newf->path_and_name) - 1);
+    newf->path_and_name[sizeof(newf->path_and_name) - 1] = '\0';
+
+    newf->mtime.tv_sec = infos.st_mtime;
+    newf->mtime.tv_nsec = 0;
+
+    newf->size = infos.st_size;
+
+    if (S_ISDIR(infos.st_mode)) {
+        newf->entry_type = DOSSIER;
+    } else if (S_ISREG(infos.st_mode)) {
+        newf->entry_type = FICHIER;
+    }
+
+    newf->mode = infos.st_mode;
+
+    newf->next = NULL;
+    newf->prev = NULL;
+
+    if (list->head == NULL) {
+        list->head = newf;
+        list->tail = newf;
+    } else {
+        newf->prev = list->tail;
+        list->tail->next = newf;
+        list->tail = newf;
+    }
+
+    return newf;
 }
 
 /*!
