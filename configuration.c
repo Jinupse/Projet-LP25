@@ -45,16 +45,17 @@ void init_configuration(configuration_t *the_config)
  * @param argv is an array of strings with the program parameters
  * @return -1 if configuration cannot succeed, 0 when ok
  */
-int set_configuration(configuration_t *the_config, int argc, char *argv[]) struct option my_opts[] = {
+int set_configuration(configuration_t *the_config, int argc, char *argv[]) {
+    struct option my_opts[] = {
         {.name="processes-count", .has_arg=1, .flag=0, .val='p'},
         {.name="is_parallel", .has_arg=0, .flag=0, .val='i'},
         {.name="uses_md5", .has_arg=0, .flag=0, .val='m'},
         {.name="is_verbose", .has_arg=0, .flag=0, .val='v'},
         {.name="is_dry_run", .has_arg=0, .flag=0, .val='r'},
-        
         {.name=0, .has_arg=0, .flag=0, .val=0},
     };
-int opt;
+
+    int opt;
     while ((opt = getopt_long(argc, argv, "", my_opts, NULL)) != -1) {
         switch (opt) {
             case 'p':
@@ -71,12 +72,14 @@ int opt;
                 // Update uses_md5 flag in the configuration
                 the_config->uses_md5 = 1;
                 break;
-            case 'v' :
+
+            case 'v':
                 // Update is_verbose flag in the configuration
                 the_config->is_verbose = 1;
                 break;
-            case 'r' : 
-             // Update is_dry_run flag in the configuration
+
+            case 'r':
+                // Update is_dry_run flag in the configuration
                 the_config->is_dry_run = 1;
                 break;
 
@@ -85,3 +88,6 @@ int opt;
                 return -1;
         }
     }
+
+    return 0;
+}
