@@ -1,10 +1,10 @@
-#include <sync.h>
+#include "sync.h"
 #include <dirent.h>
 #include <string.h>
-#include <processes.h>
-#include <utility.h>
-#include <messages.h>
-#include <file-properties.h>
+#include "processes.h"
+#include "utility.h"
+#include "messages.h"
+#include "file-properties.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/sendfile.h>
@@ -175,7 +175,7 @@ void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, c
  */
 void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t *the_config) {  
 
-    FILE *f_source=fopen(source_entry->path_and_name,"r");//ouverture du fichier source en mode lecture
+    FILE *f_source=open(source_entry->path_and_name,"r");//ouverture du fichier source en mode lecture
     DIR *destination=opendir(the_config->destination);//ouverture du repertoire de destination
 
     if(f_source != NULL){
@@ -217,7 +217,7 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
         perror("le fichier n'a pas pu etre ouvert");
     }
 
-    fclose(f_source);
+    close(f_source);
     fclose(f_destination);
     closedir(destination);
 }
