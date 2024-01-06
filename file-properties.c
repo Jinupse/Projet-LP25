@@ -32,29 +32,26 @@
  * @return -1 in case of error, 0 else
  */
 int get_file_stats(files_list_entry_t *entry) {
+    // Ajout d'une vérification pour les fichiers vides
+    FILE *file_check_empty = fopen(entry->path_and_name, "rb");
+    if (file_check_empty != NULL) {
+        fseek(file_check_empty, 0, SEEK_END);
+        long size = ftell(file_check_empty);
+        fclose(file_check_empty);
+
+        if (size == 0) {
+            printf("Le fichier est vide.\n");
+            return 0;
+        }
+    }
 
     struct stat infos;
 
     // Obtention des statistiques du fichier
     if (stat(entry->path_and_name, &infos) == -1) {
         // Erreur lors de l'obtention des statistiques du fichier
-        return -1;
-    }
-
-    // Obtention des informations communes
-    entry->mode = infos.st_mode;
-    
-    //verifie le type de fichier : ici si c'est un repertoire
-    if (S_ISDIR(entry->entry_type)){ 
-        entry->entry_type = DOSSIER;
-        return 0;
-    }else if (S_ISREG(entry->entry_type)){ //verifie le type de fichier : ici si c'est un fichier
-        entry->mtime = infos.st_mtim.tv_nsec;//on recupere le temps en nanosecondes
-        entry->size = infos.st_size;
-        entry->entry_type = FICHIER;
-        entry->md5sum = compute_file_md5(entry);//on recupere la somme md5
-        return 0;
-    }else{
+        perror("Erreur lors de l'obtention des statistiques du fichier");
+        fprintf(stderr, "Chemin du fichier : %s\n", entry->path_and_name);
         return -1;
     }
 }
@@ -67,30 +64,58 @@ int get_file_stats(files_list_entry_t *entry) {
  */
 
 int compute_file_md5(files_list_entry_t *entry) {
-    // Ouvrir le fichier en mode binaire
-    FILE *file = fopen(entry->path_and_name, "rb");
+    EVP_MD_CTX *md5Context;
+    const EVP_MD *md5Algorithm;
+    unsigned char md5Digest[EVP_MAX_MD_SIZE];
+    unsigned int md5DigestLength;
+    FILE *file;
+    size_t bytesRead;
+    unsigned char buffer[4096];
 
-    // Vérifier si le fichier a pu être ouvert
+    // Ouvrir le fichier
+    file = fopen(entry->path_and_name, "rb");
     if (!file) {
         perror("Erreur lors de l'ouverture du fichier");
-        return -1;
-    }
-     MD5_CTX md5Context; //une structure qui contient les états internes nécessaires lors du calcul du hachage MD5.
-    MD5_Init(&md5Context);// initialise le contexte MD5
-
-    // Lire le fichier par blocs et mettre à jour le contexte MD5
-    int bytesRead;
-    char buffer[1024];
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) != 0) { // lit des données à partir d'un fichier
-        MD5_Update(&md5Context, buffer, bytesRead);
+        return;
     }
 
-    // Finaliser la somme MD5
-    MD5_Final(entry->md5sum, &md5Context);
+    // Initialiser le contexte MD5
+    md5Context = EVP_MD_CTX_new();
+    md5Algorithm = EVP_md5();
+
+    if (EVP_DigestInit_ex(md5Context, md5Algorithm, NULL) != 1) {
+        fprintf(stderr, "Erreur lors de l'initialisation du contexte MD5\n");
+        fclose(file);
+        EVP_MD_CTX_free(md5Context);
+        return;
+    }
+
+    // Lire le fichier et mettre à jour le contexte de hachage
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+        if (EVP_DigestUpdate(md5Context, buffer, bytesRead) != 1) {
+            fprintf(stderr, "Erreur lors de la mise à jour du contexte MD5\n");
+            fclose(file);
+            EVP_MD_CTX_free(md5Context);
+            return;
+        }
+    }
+
+    // Finaliser le hachage
+    if (EVP_DigestFinal_ex(md5Context, md5Digest, &md5DigestLength) != 1) {
+        fprintf(stderr, "Erreur lors de la finalisation du contexte MD5\n");
+        fclose(file);
+        EVP_MD_CTX_free(md5Context);
+        return;
+    }
+
+    // Copier le résultat dans entry->md5sum
+    memcpy(entry->md5sum, md5Digest, md5DigestLength);
+
+    // Libérer le contexte MD5
+    EVP_MD_CTX_free(md5Context);
 
     // Fermer le fichier
     fclose(file);
-    return 0;
 }
 
 /*!
@@ -108,6 +133,7 @@ bool directory_exists(char *path_to_dir) {
     }
 }
 
+
 /*!
  * @brief is_directory_writable tests if a directory is writable
  * @param path_to_dir the path to the directory to test
@@ -115,14 +141,16 @@ bool directory_exists(char *path_to_dir) {
  * Hint: try to open a file in write mode in the target directory.
  */
 bool is_directory_writable(char *path_to_dir) {
-    DIR *repertoire=open_dir(path_to_dir); //on ouvre le répertoire
-    FILE *f=fopen(abc,"w"); //on creer et on ouvre un fichier test nommé abc en mode ecriture
-    if(f != NULL){//si le fichier a pu etre ouvert
-        fclose(f);//on ferme le fichier
-        remove(f);//on supprime le fichier
+    char testfile_path[PATH_MAX];
+    snprintf(testfile_path, sizeof(testfile_path), "%s/testfile", path_to_dir);
+
+    FILE *f = fopen(testfile_path, "w");
+    if (f != NULL) {
+        fclose(f);
+        remove(testfile_path);
         return true;
-    }else{
+    } else {
         return false;
     }
-    closedir(repertoire);
 }
+
