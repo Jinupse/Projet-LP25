@@ -1,6 +1,12 @@
 #include "messages.h"
 #include <sys/msg.h>
 #include <string.h>
+#include <errno.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+
 
 // Functions in this file are required for inter processes communication
 
