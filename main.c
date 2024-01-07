@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <assert.h>
-#include <sync.h>
-#include <configuration.h>
-#include <file-properties.h>
-#include <processes.h>
+#include "sync.h"
+#include "configuration.h"
+#include "file-properties.h"
+#include "processes.h"
 #include <unistd.h>
 
 /*!
