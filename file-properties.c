@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include "utility.h"
+#include "defines.h"
 
 #include <sys/types.h> 
 #include <sync.h>
