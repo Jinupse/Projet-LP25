@@ -64,6 +64,7 @@ void synchronize(configuration_t *the_config, process_context_t *p_context) {
     }
 }
 
+
 /*!
  * @brief mismatch tests if two files with the same name (one in source, one in destination) are equal
  * @param lhd a files list entry from the source
@@ -94,7 +95,6 @@ bool mismatch(files_list_entry_t *lhd, files_list_entry_t *rhd, bool has_md5) {
     }
     return false;
 }
-
 /*!
  * @brief make_files_list buils a files list in no parallel mode
  * @param list is a pointer to the list that will be built
@@ -102,6 +102,7 @@ bool mismatch(files_list_entry_t *lhd, files_list_entry_t *rhd, bool has_md5) {
  */
 void make_files_list(files_list_t *list, char *target_path) {
     // Ouvre le répertoire
+    printf("Opening directory: %s\n", target_path);
     DIR *dir = opendir(target_path);
     if (dir == NULL) {
         perror("Erreur en ouvrant le répertoire");
@@ -114,7 +115,7 @@ void make_files_list(files_list_t *list, char *target_path) {
     while ((entry = get_next_entry(dir)) != NULL) {
         // On construit le chemin complet en combinant target_path et le nom de l'entrée
         char full_path[PATH_MAX];
-        concat_path(full_path,target_path, entry->d_name);
+        *concat_path(full_path,target_path, entry->d_name);
 
         // On ajoute les informations du fichier à la liste
         files_list_entry_t *added_entry = add_file_entry(list, full_path);
@@ -143,7 +144,7 @@ void make_files_list(files_list_t *list, char *target_path) {
  * @param msg_queue is the id of the MQ used for communication
  */
 void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, configuration_t *the_config, int msg_queue) {
-     // Vérifier si le traitement parallèle est activé
+    // Vérifier si le traitement parallèle est activé
     if (!the_config->is_parallel) {
         return;
     }
@@ -156,8 +157,8 @@ void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, c
 
     // Créer les processus source_analyzers et destination_analyzers en parallèle
     for (int i = 0; i < the_config->processes_count; ++i) {
-        make_process(the_config, analyzer_process_loop, &src_list->analyzer_config[i]);
-        make_process(the_config, analyzer_process_loop, &dst_list->analyzer_config[i]);
+        make_process(the_config, analyzer_process_loop, src_list);
+        make_process(the_config, analyzer_process_loop, dst_list); 
     }
 
     // Attendre la fin du processus source_lister
@@ -180,10 +181,11 @@ void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, c
  */
 void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t *the_config) {
     char chemin_fichier[PATH_SIZE];
+    printf("Copying file: %s\n", source_entry->path_and_name); 
     //supprime le prefixe de file_list_entry
     if (S_ISREG(source_entry->mode)) {
-        concat_path(chemin_fichier, the_config->destination, source_entry->path_and_name + strlen(the_config->source)+1);
-        if(the_config->verbose) {
+        *concat_path(chemin_fichier, the_config->destination, source_entry->path_and_name + strlen(the_config->source)+1);
+        if(the_config->is_verbose==1) {
             printf("Copie %s dans %s\n", chemin_fichier, the_config->destination);
         }
         int source_fd = open(source_entry->path_and_name, O_RDONLY);
@@ -201,7 +203,7 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
             strcat(chemin_repertoire,token);
             if(strcmp(chemin_repertoire,chemin_fichier)!=0) {
                 if(mkdir(chemin_repertoire,0777) != 0) {
-                    if(the_config->verbose) {
+                    if(the_config->is_verbose==1) {
                         printf("Erreur \n");
                     }
                     perror("Le chemin ne peut pas être ouvert\n");
@@ -212,7 +214,7 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
         }
         int destination_fd = open(chemin_fichier, O_WRONLY | O_CREAT | O_TRUNC, source_entry->mode);
         if (destination_fd == -1) {
-            if(the_config->verbose) {
+            if(the_config->is_verbose==1) {
                 printf("Erreur\n");
             }
             perror("Erreur lors de l'ouverture du fichier de destination\n");
@@ -228,9 +230,9 @@ void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t
  * @param list is a pointer to the list that will be built
  * @param target is the target dir whose content must be listed
  */
-void make_list(files_list_t *list, const char *target) {
+void make_list(files_list_t *list, char *target) {
     // Ouvre le répertoire
-    DIR *dir = opendir(target_path);
+    DIR *dir = opendir(target);
     if (dir == NULL) {
         perror("Erreur en ouvrant le répertoire");
         exit(EXIT_FAILURE);
@@ -242,7 +244,7 @@ void make_list(files_list_t *list, const char *target) {
     while ((entry = get_next_entry(dir)) != NULL) {
         // On construit le chemin complet en combinant target_path et le nom de l'entrée
         char full_path[PATH_MAX];
-        concat_path(full_path,target_path, entry->d_name);
+        *concat_path(full_path,target, entry->d_name);
 
         // On ajoute les informations du fichier à la liste
         files_list_entry_t *added_entry = add_file_entry(list, full_path);
@@ -261,7 +263,6 @@ void make_list(files_list_t *list, const char *target) {
 
     // On ferme le répertoire
     closedir(dir);
-}
 }
 
 /*!
