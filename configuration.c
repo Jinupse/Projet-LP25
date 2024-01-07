@@ -1,4 +1,4 @@
-#include <configuration.h>
+#include "configuration.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <getopt.h>
