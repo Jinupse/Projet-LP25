@@ -173,53 +173,47 @@ void make_files_lists_parallel(files_list_t *src_list, files_list_t *dst_list, c
  * Pay attention to the path so that the prefixes are not repeated from the source to the destination
  * Use sendfile to copy the file, mkdir to create the directory
  */
-void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t *the_config) {  
-
-    FILE *f_source=open(source_entry->path_and_name,"r");//ouverture du fichier source en mode lecture
-    DIR *destination=opendir(the_config->destination);//ouverture du repertoire de destination
-
-    if(f_source != NULL){
-        if(directory_exists(destination) == false){//on verifie si le repertoire de destination existe 
-            mkdir(the_config->destination,source_entry->mode);//s'il n'existe pas on le creer en concervant les modes d'acces
+void copy_entry_to_destination(files_list_entry_t *source_entry, configuration_t *the_config) {
+    char chemin_fichier[PATH_SIZE];
+    //supprime le prefixe de file_list_entry
+    if (S_ISREG(source_entry->mode)) {
+        concat_path(chemin_fichier, the_config->destination, source_entry->path_and_name + strlen(the_config->source)+1);
+        if(the_config->verbose) {
+            printf("Copie %s dans %s\n", chemin_fichier, the_config->destination);
         }
-
-        if(!is_directory_writable(the_config->destination)){ //si le repertoire de destination n'est pas ouvert en mode ecriture on ne peut pas copier le fichier  
-            perror("le fichier ne peut pas etre copie car le repertoire de destination ne possede pas les droits en ecriture");
-        }else{
-
-            char *chemin = NULL;
-            chemin = strtok(chaine, "/");//permet de récupérer le nom de chaque répertoire du chemin où se trouve le fichier à copier
-            char TableauChemin[source_entry->size][source_entry->size];//tableau qui va stocker chaque nom de répertoire
-     
-            int i=0;
-            while (chemin != NULL){
-                strcpy(&TableauChemin[i][i], chemin);//on stocke chaque nom de répertoire dans un tableau
-                i++;
-                chemin = strtok( NULL, "/");
-            }
-            for(j=1;j<i-1;j++){ 
-                if(chdir(&TableauChemin[j][j]) != 0){//on se déplace dans le répertoire
-                    mkdir(&TableauChemin[j][j], 0777);//on créer les répertoires dans la destination 
-                }else{
-                    chdir(&TableauChemin[j][j]);
+        int source_fd = open(source_entry->path_and_name, O_RDONLY);
+        if (source_fd == -1) {
+            perror("Erreur lors de l'ouverture du fichier source\n");
+            return;
+        }
+        //Creation d'un dossier intermediaire
+        char *separateur="/";
+        char *token = strtok(source_entry->path_and_name + strlen(the_config->source)+1,separateur);
+        char chemin_repertoire[256] = "";
+        strcat(chemin_repertoire,the_config->destination);
+        while(strcmp(chemin_repertoire,chemin_fichier) != 0){
+            strcat(chemin_repertoire,separateur);
+            strcat(chemin_repertoire,token);
+            if(strcmp(chemin_repertoire,chemin_fichier)!=0) {
+                if(mkdir(chemin_repertoire,0777) != 0) {
+                    if(the_config->verbose) {
+                        printf("Erreur \n");
+                    }
+                    perror("Le chemin ne peut pas être ouvert\n");
+                    return;
                 }
-                chdir(&TableauChemin[j][j]);
             }
-            
-            //permet que les préfixes ne soient pas répétés de la source à la destination dans le chemin
-            concat_path(the_config->destination,the_config->destination,basename(the_config->source));//on ajoute le nom du fichier au chemin de la destination
-            FILE *f_destination=fopen(the_config->destination,"w");//creation d'un fichier dans le repertoire de destination
-            sendfile(f_destination,f_source,0,source_entry->size);//copie du fichier vers le repertoire de destination
-            utimensat (f_source,f_destination,source_entry->mtime,0);//on concerve le mtime 
+            token = strtok(NULL,separateur);
         }
-
-    }else{
-        perror("le fichier n'a pas pu etre ouvert");
+        int destination_fd = open(chemin_fichier, O_WRONLY | O_CREAT | O_TRUNC, source_entry->mode);
+        if (destination_fd == -1) {
+            if(the_config->verbose) {
+                printf("Erreur\n");
+            }
+            perror("Erreur lors de l'ouverture du fichier de destination\n");
+            return;
+        }
     }
-
-    close(f_source);
-    fclose(f_destination);
-    closedir(destination);
 }
 
 /*!
