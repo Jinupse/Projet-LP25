@@ -14,11 +14,24 @@
  * Used by the specialized functions send_analyze*
  */
 int send_file_entry(int msg_queue, int recipient, files_list_entry_t *file_entry, int cmd_code) {
-    // Vérifie la donnée file_entry a été fournie
     if (file_entry == NULL) {
         fprintf(stderr, "Erreur, entrée invalide.\n");
-        return -1;  // 
+        return -1;
     }
+
+    files_list_entry_transmit_t msg;
+    msg.mtype = recipient;
+    msg.op_code = cmd_code; 
+    memcpy(&msg.payload, file_entry, sizeof(files_list_entry_t));
+
+    int result_msg = msgsnd(msg_queue, &msg, sizeof(files_list_entry_transmit_t) - sizeof(long), 0);
+    
+    if (result_msg == -1) {
+        perror("msgsnd");
+    }
+
+    return result_msg;
+}
 
     //Création d'un message avec sa structure (type de message, code d'opération et données du fichier)
     files_list_entry_transmit_t msg;
@@ -46,7 +59,8 @@ int send_file_entry(int msg_queue, int recipient, files_list_entry_t *file_entry
  * @param target_dir is a string containing the path to the directory to analyze
  * @return the result of msgsnd
  */
-int send_analyze_dir_command(int msg_queue, int recipient, char *target_dir) {
+
+ int send_analyze_dir_command(int msg_queue, int recipient, char *target_dir) {
     if (target_dir == NULL) {
         fprintf(stderr, "Erreur : pointeur de chaîne NULL\n");
         return -1;
@@ -73,6 +87,7 @@ int send_analyze_dir_command(int msg_queue, int recipient, char *target_dir) {
     return result;
 }
 
+
 // The 3 following functions are one-liners
 
 /*!
@@ -84,9 +99,10 @@ int send_analyze_dir_command(int msg_queue, int recipient, char *target_dir) {
  * Calls send_file_entry function
  */
 int send_analyze_file_command(int msg_queue, int recipient, files_list_entry_t *file_entry) {
-    int cmd_code;
-   return send_file_entry(msg_queue, recipient, file_entry,cmd_code);
+    char cmd_code = 'A';  // Utiliser 'A' comme code d'opération pour l'analyse de fichier
+    return send_file_entry(msg_queue, recipient, file_entry, cmd_code);
 }
+
 
 /*!
  * @brief send_analyze_file_response sends a file entry after analyze
@@ -97,10 +113,9 @@ int send_analyze_file_command(int msg_queue, int recipient, files_list_entry_t *
  * Calls send_file_entry function
  */
 int send_analyze_file_response(int msg_queue, int recipient, files_list_entry_t *file_entry) {
-    int cmd_code;
-   return send_file_entry(msg_queue, recipient, file_entry,cmd_code); 
+    char cmd_code = 'B';  // Utiliser 'B' comme code d'opération pour la réponse de l'analyse de fichier
+    return send_file_entry(msg_queue, recipient, file_entry, cmd_code);
 }
-
 /*!
  * @brief send_files_list_element sends a files list entry from a complete files list
  * @param msg_queue the MQ identifier through which to send the entry
@@ -110,8 +125,8 @@ int send_analyze_file_response(int msg_queue, int recipient, files_list_entry_t 
  * Calls send_file_entry function
  */
 int send_files_list_element(int msg_queue, int recipient, files_list_entry_t *file_entry) {
-    int cmd_code
-   return send_file_entry(msg_queue, recipient, file_entry,cmd_code); 
+    char cmd_code = 'C';  // Utiliser 'C' comme code d'opération pour l'élément de liste
+    return send_file_entry(msg_queue, recipient, file_entry, cmd_code);
 }
 
 /*!
@@ -145,17 +160,13 @@ int send_list_end(int msg_queue, int recipient) {
  * @return the result of msgsnd
  */
 int send_terminate_command(int msg_queue, int recipient) {
+    simple_command_t message_terminer;
+    message_terminer.mtype = recipient;
+    message_terminer.message = 'D';  // Utiliser 'D' comme code d'opération pour la commande de terminaison
 
-    //  Initialiser la structure du message à envoyer
-    any_message_t message_terminer;
-    message_terminer.simple_command.mtype = recipient;
-    message_terminer.simple_command.op_code = COMMAND_CODE_TERMINATE;
-
-    // Envoyer le message à la file de messages
-    int resultat = msgsnd(msg_queue, &message_terminer, sizeof(any_message_t) - sizeof(long), 0);
+    int resultat = msgsnd(msg_queue, &message_terminer, sizeof(simple_command_t) - sizeof(long), 0);
 
     if (resultat == -1) {
-        // Gérer l'erreur, imprimer un message d'erreur avec perror
         perror("Erreur lors de l'envoi de la commande de terminaison");
     }
 
@@ -169,17 +180,13 @@ int send_terminate_command(int msg_queue, int recipient) {
  * @return the result of msgsnd
  */
 int send_terminate_confirm(int msg_queue, int recipient) {
+    simple_command_t message_confirmation;
+    message_confirmation.mtype = recipient;
+    message_confirmation.message = 'E';  // Utiliser 'E' comme code d'opération pour la confirmation de terminaison
 
-    //  Initialiser la structure du message à envoyer
-    any_message_t message_confirmation;
-    message_confirmation.simple_command.mtype = recipient;
-    message_confirmation.simple_command.op_code = COMMAND_CODE_TERMINATE_OK;
-
-    // Envoyer le message à la file de messages
-    int resultat = msgsnd(msg_queue, &message_confirmation, sizeof(any_message_t) - sizeof(long), 0);
+    int resultat = msgsnd(msg_queue, &message_confirmation, sizeof(simple_command_t) - sizeof(long), 0);
 
     if (resultat == -1) {
-        // Gérer l'erreur, imprimer un message d'erreur avec perror
         perror("Erreur lors de l'envoi de confirmation");
     }
 
