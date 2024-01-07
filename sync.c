@@ -102,7 +102,6 @@ bool mismatch(files_list_entry_t *lhd, files_list_entry_t *rhd, bool has_md5) {
  */
 void make_files_list(files_list_t *list, char *target_path) {
     // Ouvre le répertoire
-    printf("Opening directory: %s\n", target_path);
     DIR *dir = opendir(target_path);
     if (dir == NULL) {
         perror("Erreur en ouvrant le répertoire");
