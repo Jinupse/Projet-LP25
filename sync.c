@@ -75,7 +75,7 @@ bool mismatch(files_list_entry_t *lhd, files_list_entry_t *rhd, bool has_md5) {
             } 
         }
     }
-    if (lhd->mtime != rhd->mtime){
+    if (lhd->mtime.tv_sec != rhd->mtime.tv_sec || lhd->mtime.tv_nsec != rhd->mtime.tv_nsec){
         return true;
     }
     if(lhd->size != rhd->size){
