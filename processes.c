@@ -8,6 +8,9 @@
 #include "sync.h"
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
+
+#include <signal.h>  
 
 /*!
  * @brief prepare prepares (only when parallel is enabled) the processes used for the synchronization.
@@ -81,7 +84,7 @@ void lister_process_loop(void *parameters) {
 void analyzer_process_loop(void *parameters) {
 
     // Conversion du pointeur vers le type
-    analyzer_configuration_t *analyzer_config = (analyzer_configuration_t *)parameters
+    analyzer_configuration_t *analyzer_config = (analyzer_configuration_t *)parameters;
 
 }
 
@@ -120,3 +123,27 @@ void clean_processes(configuration_t *the_config, process_context_t *p_context) 
 
     // Libérer la file de messages (MQ) ou d'autres ressources si nécessaire
 }
+
+void request_element_details(int msg_queue, files_list_entry_t *entry, lister_configuration_t *cfg, int *current_analyzers) {
+    // Vérifier s'il y a des analyseurs disponibles
+    if (*current_analyzers <= 0) {
+        printf("Aucun analyseur disponible pour traiter la demande.\n");
+        return;
+    }
+
+    // Sélectionner l'analyseur suivant
+    int analyzer_id = cfg->my_recipient_id + cfg->my_receiver_id - (*current_analyzers);
+    int recipient_id = cfg->my_recipient_id + analyzer_id;
+
+    // Envoyer le message à la file de messages
+    int result = msgsnd(msg_queue, entry, sizeof(files_list_entry_t) - sizeof(long), 0);
+
+    if (result == -1) {
+        // Gérer l'erreur, imprimer un message d'erreur avec perror
+        perror("Erreur lors de l'envoi de la demande de détails");
+    } else {
+        printf("Demande de détails envoyée à l'analyseur %d avec succès.\n", analyzer_id);
+        // Mettre à jour la liste des analyseurs disponibles
+        (*current_analyzers)--;
+ 
+       }   }
